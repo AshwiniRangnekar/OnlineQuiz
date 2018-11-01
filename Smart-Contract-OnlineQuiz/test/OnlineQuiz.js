@@ -52,7 +52,7 @@ contract('OnlineQuiz', (accounts) => {
         try{
             await contractInstance.registerParticipants(50, { value: web3.toWei(0, "ether"), from: participant1 });
             const payfee = contractInstance.pfee.call();
-            assert.isAtleast(50,payfee,"Insufficient fund in Wallet");
+            assert.isAtleast(payfee,50,"Insufficient fund in Wallet");
         }
         catch(e){
             assert.ok(true);
@@ -92,6 +92,29 @@ contract('OnlineQuiz', (accounts) => {
         	assert.ok(true);
         }
  	})
+
+    it('Participant cannot pay to winner', async() => {
+        try{
+
+            await contractInstance.Payto_winner(15, { value: web3.toWei(0, "ether"), from: participant1 });
+
+        }
+        catch(e){
+            assert.ok(true);
+        }
+    })
+
+    it('Only quizmaker can pay to winner', async() => {
+        try{
+
+            await contractInstance.Payto_winner(15, { value: web3.toWei(0, "ether"), from: QuizMaker });
+
+        }
+        catch(e){
+            assert.ok(true);
+        }
+    })
+
 })
 
 
@@ -149,7 +172,7 @@ contract('OnlineQuiz', (accounts) => {
         try{
             await contractInstance.registerParticipants(50, { value: web3.toWei(0, "ether"), from: participant1 });
             const payfee = contractInstance.pfee.call();
-            assert.isAtleast(50,payfee,"Insufficient fund in Wallet");
+            assert.isAtleast(payfee,50,"Insufficient fund in Wallet");
         }
         catch(e){
             assert.ok(true);
@@ -186,6 +209,28 @@ contract('OnlineQuiz', (accounts) => {
         try{
             await contractInstance.registerParticipants(15, { value: web3.toWei(0, "ether"), from: participant1 });
             await contractInstance.registerParticipants(15, { value: web3.toWei(0, "ether"), from: participant2 });
+        }
+        catch(e){
+            assert.ok(true);
+        }
+    })
+
+    it('Participant cannot pay to winner', async() => {
+        try{
+
+            await contractInstance.Payto_winner(15, { value: web3.toWei(0, "ether"), from: participant1 });
+
+        }
+        catch(e){
+            assert.ok(true);
+        }
+    })
+
+    it('Only quizmaker can pay to winner', async() => {
+        try{
+
+            await contractInstance.Payto_winner(15, { value: web3.toWei(0, "ether"), from: QuizMaker });
+
         }
         catch(e){
             assert.ok(true);
