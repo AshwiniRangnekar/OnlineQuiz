@@ -8,12 +8,14 @@ contract OnlineQuiz {
         uint count;
     }
     
+    string[] v_question;
     Question[] questions;
     
     uint maxplayer;
     uint pfee;
     uint tfee;
     address organiser;
+    uint org_fee;
     
     uint noques;
     uint till_noques;
@@ -31,12 +33,12 @@ contract OnlineQuiz {
 
 
     modifier is_organiser(){
-        require(msg.sender==organiser,"I am not an ORGANISER");
+        require(msg.sender==organiser,"I AM NOT AN ORGANISER");
         _;
     }
     
      modifier not_organiser(){
-        require(msg.sender!=organiser,"I am an ORGANISER");
+        require(msg.sender!=organiser,"I AM AN ORGANISER");
         _;
     }
    
@@ -46,7 +48,7 @@ contract OnlineQuiz {
     }
     
     modifier registered(address player){
-        require(players_mapping[player]==0,"You are registered");
+        require(players_mapping[player]==0,"YOU ARE REGISTERD");
         _;
     }
 
@@ -55,7 +57,12 @@ contract OnlineQuiz {
         require ( wallet >= prfee, "INSUFFCIENT BALANCE");
         _;
     }
-
+     
+    modifier is_question_no()
+    {
+        require ( noques > till_noques, "MAXIMUM QUES REACHED");
+        _;
+    }
 
     constructor(uint fee, uint n, uint noq) 
     public
@@ -72,16 +79,17 @@ contract OnlineQuiz {
     
     function addQuestion(string ques, string ans)
     public is_organiser()
+    is_question_no()
     {
         
-        if(till_noques < noques){
-            till_noques +=1;
-            questions.push(Question({
-                QUES: ques,
-                ANS: ans,
-                count: 0
-            }));
-        }
+        till_noques +=1;
+        questions.push(Question({
+            QUES: ques,
+            ANS: ans,
+            count: 0
+        }));
+
+        v_question.push(ques);
     }
     
     
@@ -107,7 +115,13 @@ contract OnlineQuiz {
         return keccak256(given1) == keccak256(answered1);
     }
     
-    function play(string[] answers) public registered(msg.sender)
+    function view_question() public view returns (string[] ques) 
+    {
+        return (v_question);
+    }
+    
+    function play(string[] answers) public 
+    registered(msg.sender)
     {
         //uint correct_ans = 0;
         for (uint i = 0; i< questions.length; i++)
@@ -125,13 +139,12 @@ contract OnlineQuiz {
         
     }
     
-    function Payto_winner()
-    public
+    function Payto_winner() public
     is_organiser()
     {
 
         uint pay;
-        
+        uint temp_fee = tfee;
         for(uint i = 0;i < questions.length;i++){
            
            for(uint j = 0;j< ques_player_mapping[i].length;j++)
@@ -140,22 +153,38 @@ contract OnlineQuiz {
             pay = ((3*tfee)/16)/ques_player_mapping[i].length;
             players_balance_mapping[ques_player_mapping[i][j]] += pay; 
             
-            tfee -= pay; 
+            temp_fee -= pay; 
            }
            
         }
-       
+       org_fee = temp_fee;
     }
     
-    function viewbalance_palyer() public not_organiser() view returns (address participant, uint balance) {
+    
+    function viewbalance_player() public 
+    not_organiser() view returns (address participant, uint balance) 
+    {
         
         return (msg.sender , players_balance_mapping[msg.sender]);
     }
     
-    function viewbalance_org() public is_organiser() view returns (uint) {
-        
-        return tfee;
+    function viewbalance_org() public 
+    is_organiser() view returns (uint) 
+    {
+        return org_fee;
     }
     
+    function take_money_org() public
+    is_organiser()
+    {
+        msg.sender.transfer(org_fee);
+        org_fee = 0;
+    }
     
+    function take_money_player() public 
+    not_organiser()
+    {
+        msg.sender.transfer(players_balance_mapping[msg.sender]);
+        players_balance_mapping[msg.sender] = 0;
+    }
 }
