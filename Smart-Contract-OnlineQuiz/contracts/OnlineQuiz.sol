@@ -48,7 +48,7 @@ contract OnlineQuiz {
     }
     
     modifier registered(address player){
-        require(players_mapping[player]==0,"YOU ARE REGISTERD");
+        require(players_mapping[player]==1,"YOU ARE NOT REGISTERD");
         _;
     }
 
